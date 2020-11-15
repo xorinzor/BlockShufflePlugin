@@ -20,8 +20,6 @@ public class BlockShuffleTask extends BukkitRunnable {
     boolean hasRoundEnded;
     Main plugin;
     BlockShuffleTaskHelper helper;
-    int currentRoundTime;
-    int currentRound;
     int successfulPlayers;
     int counter;
     SendTitle titleSender;
@@ -30,14 +28,12 @@ public class BlockShuffleTask extends BukkitRunnable {
         this.logger = Bukkit.getLogger();
         this.plugin = plugin;
         this.hasRoundEnded = true;
-        this.currentRoundTime = 0;
-        this.currentRound = 0;
         this.successfulPlayers = 0;
         this.counter = 100;
         this.titleSender = new SendTitle();
-        this.helper = new BlockShuffleTaskHelper(this.plugin, this.currentRound);
+        this.helper = new BlockShuffleTaskHelper(this.plugin);
     }
-
+    
     @Override
     public void run() {
 
@@ -52,12 +48,12 @@ public class BlockShuffleTask extends BukkitRunnable {
 
         else {
             if (hasRoundEnded) {
-                this.currentRound += 1;
-                Bukkit.broadcastMessage("Starting Round : " + ChatColor.BOLD + "" + this.currentRound);
-                this.currentRoundTime = 0;
+            	this.plugin.params.setCurrentRound(this.plugin.params.getCurrentRound() + 1);
+            	this.plugin.params.setCurrentRoundTime(0);
+                Bukkit.broadcastMessage("Starting Round : " + ChatColor.BOLD + "" + this.plugin.params.getCurrentRound());
                 this.hasRoundEnded = false;
                 this.successfulPlayers = 0;
-                helper.startRound(this.currentRound);
+                helper.startRound();
             } else {
                 for (BlockShufflePlayer player : this.plugin.params.getAvailablePlayers()) {
                     if (!player.getHasFoundBlock()) {
@@ -66,23 +62,31 @@ public class BlockShuffleTask extends BukkitRunnable {
                     }
                 }
 
-                int timeRemaining = this.plugin.params.getRoundTime() - this.currentRoundTime;
+                int timeRemaining = this.plugin.params.getRoundTime() - this.plugin.params.getCurrentRoundTime();
 
+                //Check if everyone found their block
                 if (this.successfulPlayers == this.plugin.params.getAvailablePlayers().size()) {
                     Bukkit.broadcastMessage(ChatColor.GREEN + "Everyone Found their block!");
                     this.hasRoundEnded = true;
-                } else if (timeRemaining <= 0) {
+                } 
+                //Else check if the time is up
+                else if (timeRemaining <= 0) {
                     Bukkit.broadcastMessage("\nTime Up!");
                     this.hasRoundEnded = true;
-                } else if (timeRemaining <= 200) {
+                } 
+                //Else check for the remaining time (countdown)
+                else if (timeRemaining <= 200) {
                     if(timeRemaining % 20 == 0)
                         Bukkit.broadcastMessage(ChatColor.RED + "Time Remaining : " + ChatColor.BOLD + (timeRemaining / 20) + " seconds");
-                    this.currentRoundTime += 10;
-                } else {
-                    this.currentRoundTime += 10;
+                    this.plugin.params.increaseCurrentRoundTime(10);
+                } 
+                //Finally increase the round time
+                else {
+                	this.plugin.params.increaseCurrentRoundTime(10);
                 }
 
-                if (this.hasRoundEnded && this.currentRound == this.plugin.params.getNoOfRounds()) {
+                //Check if the game is finished
+                if (this.hasRoundEnded && this.plugin.params.getCurrentRound() == this.plugin.params.getNoOfRounds()) {
                     this.cancel();
                 }
             }
@@ -99,19 +103,16 @@ public class BlockShuffleTask extends BukkitRunnable {
 class BlockShuffleTaskHelper {
 
     Main plugin;
-    int currentRound;
-    public BlockShuffleTaskHelper(Main plugin, int currentRound){
+    
+    public BlockShuffleTaskHelper(Main plugin){
         this.plugin = plugin;
-        this.currentRound = currentRound;
     }
 
-    public void startRound(int currentRound){
-        this.currentRound = currentRound;
+    public void startRound(){
         for(BlockShufflePlayer player : this.plugin.params.getAvailablePlayers()){
             player.setHasFoundBlock(false);
             player.setBlockToBeFound(getRandomBlock());
             Bukkit.getLogger().info("Assigned " + player.getName() + " with " + player.getBlockToBeFound());
-            createBoard(player);
         }
     }
 
@@ -121,32 +122,13 @@ class BlockShuffleTaskHelper {
         return this.plugin.params.getAvailableBlocks().get(randomNumber);
     }
 
-    public void createBoard(BlockShufflePlayer player) {
-        Bukkit.getLogger().info("Creating Scoreboard for " + player.getName());
-        Scoreboard scoreboard = Objects.requireNonNull(Bukkit.getScoreboardManager()).getNewScoreboard();
-        Objective obj = scoreboard.registerNewObjective("BSObjective", "dummy", "Block Shuffle");
-        obj.setDisplaySlot(DisplaySlot.SIDEBAR);
-
-        Score s1 = obj.getScore("ROUND : " + this.currentRound + "/" + this.plugin.params.getNoOfRounds());
-        s1.setScore(5);
-        Score s2 = obj.getScore("");
-        s2.setScore(4);
-        Score s3 = obj.getScore("YOUR SCORE : " + player.getScore());
-        s3.setScore(3);
-        Score s4 = obj.getScore("");
-        s4.setScore(2);
-        Score s5 = obj.getScore("YOUR BLOCK : " + player.getBlockToBeFound());
-        s5.setScore(1);
-
-        player.player.setScoreboard(scoreboard);
-    }
-
     public boolean checkPlayer(BlockShufflePlayer player) {
         Material standingOn = Objects.requireNonNull(Bukkit.getPlayer(player.getName())).getLocation().getBlock().getRelative(BlockFace.DOWN).getType();
         if(standingOn.equals(player.getBlockToBeFound())) {
             player.setHasFoundBlock(true);
             player.setScore(player.getScore() + 1);
             broadcastSound(Sound.BLOCK_END_PORTAL_SPAWN);
+            Bukkit.broadcastMessage(ChatColor.AQUA + player.player.getDisplayName() + " has found their block!");
             return true;
         }
 

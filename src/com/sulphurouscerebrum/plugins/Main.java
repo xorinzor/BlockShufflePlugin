@@ -2,7 +2,11 @@ package com.sulphurouscerebrum.plugins;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import be.maximvdw.placeholderapi.PlaceholderAPI;
+import be.maximvdw.placeholderapi.PlaceholderReplaceEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +17,8 @@ public class Main extends JavaPlugin {
     BlockShuffleParams params;
 
     public void onEnable(){
+    	super.onEnable();
+    	
         Objects.requireNonNull(getCommand("blockshuffle")).setExecutor(new BlockShuffleCommands(this));
         Objects.requireNonNull(getCommand("blockshuffle")).setTabCompleter(new BlockShuffleTabCompleter(this));
 
@@ -20,6 +26,116 @@ public class Main extends JavaPlugin {
         params = new BlockShuffleParams();
 
         loadConfigFile();
+        
+        if(Bukkit.getPluginManager().isPluginEnabled("MVdWPlaceholderAPI")) {
+        	PlaceholderAPI.registerPlaceholder(this, "blockshuffle_blockToFind", new BlockShufflePlaceholderReplacer(params) {        		
+        		@Override
+        		public String onPlaceholderReplace(PlaceholderReplaceEvent event) {
+    				Player p = event.getPlayer();
+    				
+    				if(p == null) {
+    					return "invalid player";
+    				}
+    				
+    				BlockShufflePlayer bp = this.params.getPlayer(p.getName());
+    				
+    				if(bp == null) {
+    					return "unknown user";
+    				}
+    				
+    				if(bp.getBlockToBeFound() == null) {
+    					return "not assigned";
+    				} else {
+    					return bp.getBlockToBeFound().name();
+        			}
+        		}
+        	});
+        	
+        	PlaceholderAPI.registerPlaceholder(this, "blockshuffle_foundBlock", new BlockShufflePlaceholderReplacer(params) {
+        		@Override
+        		public String onPlaceholderReplace(PlaceholderReplaceEvent event) {
+        			if(event.isOnline()) {
+        				return "offline";
+        			}
+    			
+        			Player p = event.getPlayer();
+    				
+    				if(p == null) {
+    					return "invalid player";
+    				}
+    				
+    				BlockShufflePlayer bp = this.params.getPlayer(p.getName());
+    				
+    				if(bp == null) {
+    					return "unknown user";
+    				}
+    				
+    				if(bp.getHasFoundBlock()) {
+    					return "true";
+    				}
+    				
+					return "false";
+        		}
+        	});
+        	
+        	PlaceholderAPI.registerPlaceholder(this, "blockshuffle_score", new BlockShufflePlaceholderReplacer(params) {
+        		@Override
+        		public String onPlaceholderReplace(PlaceholderReplaceEvent event) {
+        			if(event.isOnline()) {
+        				return "offline";
+        			}
+    			
+    				Player p = event.getPlayer();
+    				
+    				if(p == null) {
+    					return "invalid player";
+    				}
+    				
+    				BlockShufflePlayer bp = this.params.getPlayer(p.getName());
+    				
+    				if(bp == null) {
+    					return "unknown user";
+    				}
+    				
+    				return "" + bp.getScore();
+        		}
+        	});
+        	
+        	PlaceholderAPI.registerPlaceholder(this, "blockshuffle_currentRound", new BlockShufflePlaceholderReplacer(params) {
+        		@Override
+        		public String onPlaceholderReplace(PlaceholderReplaceEvent event) {
+        			return "" + this.params.getCurrentRound();
+        		}
+        	});
+        	
+        	PlaceholderAPI.registerPlaceholder(this, "blockshuffle_totalRounds", new BlockShufflePlaceholderReplacer(params) {
+        		@Override
+        		public String onPlaceholderReplace(PlaceholderReplaceEvent event) {
+        			return "" + this.params.getNoOfRounds();
+        		}
+        	});
+        	
+        	PlaceholderAPI.registerPlaceholder(this, "blockshuffle_totalRoundTime", new BlockShufflePlaceholderReplacer(params) {
+        		@Override
+        		public String onPlaceholderReplace(PlaceholderReplaceEvent event) {
+        			return "" + this.params.getRoundTime();
+        		}
+        	});
+        	
+        	PlaceholderAPI.registerPlaceholder(this, "blockshuffle_currentRoundTime", new BlockShufflePlaceholderReplacer(params) {        		
+        		@Override
+        		public String onPlaceholderReplace(PlaceholderReplaceEvent event) {
+        			return "" + this.params.getCurrentRoundTime();
+        		}
+        	});
+        	
+        	PlaceholderAPI.registerPlaceholder(this, "blockshuffle_gamerunning", new BlockShufflePlaceholderReplacer(params) {        		
+        		@Override
+        		public String onPlaceholderReplace(PlaceholderReplaceEvent event) {
+        			return (this.params.getIsGameRunning()) ? "true" : "false";
+        		}
+        	});
+        }
     }
 
     public void onDisable(){

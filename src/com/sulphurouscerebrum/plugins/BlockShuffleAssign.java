@@ -15,55 +15,25 @@ public class BlockShuffleAssign {
 	}
 	
 	public void assignBlocks() {
-		
-		for(BlockShufflePlayer player : plugin.players) {
-			player.setCompleted(false);
+		for(BlockShufflePlayer player : plugin.params.getAvailablePlayers()) {
+			player.setHasFoundBlock(false);
 			Material assignedBlock = getRandomBlock();
-			player.setBlock(assignedBlock);
-			Player play = Bukkit.getPlayer(player.name);
+			player.setBlockToBeFound(assignedBlock);
+			Player play = Bukkit.getPlayer(player.getName());
 			play.sendMessage("Your block is : " + assignedBlock.name());
 		}
 	}
 	
 	public Material getRandomBlock() {
-		
 		Material assignedBlock = null;
 		Random rand = new Random();
 		
-//		Generate random number and get it from list
+		//Generate random number and get it from list
 		while(assignedBlock == null) {
-			int randomNumber = rand.nextInt(plugin.availableBlocks.size());
-			Material m = Material.getMaterial(plugin.availableBlocks.get(randomNumber));
+			int randomNumber = rand.nextInt(plugin.params.getAvailableBlocks().size());
+			Material m = plugin.params.getAvailableBlocks().get(randomNumber);
 			assignedBlock = m;
 		}
 		return assignedBlock;
 	}
-	
-	
-//	For weighted games. Under development
-	
-//	@SuppressWarnings("rawtypes")
-//	public Material getRandomBlock() {
-//		
-//		Material assignedBlock = null;
-//		Random rand = new Random();
-//		int weight;
-//		String blockName;
-//		
-////		Iterate through the HashMap and find the first element which has greater weight than chosen randomNumber.
-////		If nothing selected, repeat.
-//		while(assignedBlock == null) {
-//			int randomNumber = rand.nextInt(plugin.weightedSum);
-//						
-//			for(Map.Entry block : plugin.availableBlocks.entrySet()) {
-//				weight = (int) block.getValue();
-//				if(weight > randomNumber) {
-//					blockName = (String) block.getKey();
-//					assignedBlock = Material.getMaterial(blockName);
-//					break;
-//				}
-//			}
-//		}
-//		return assignedBlock;
-//	}
 }

@@ -8,24 +8,34 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BlockShuffleParams {
-    @SuppressWarnings("FieldCanBeLocal")
     private BukkitTask task;
+    private int currentRound;
     private int noOfRounds;
     private int roundTime;
+    private int currentRoundTime;
     private int initialFoodAmount;
     private boolean isGameRunning;
     private List<Material> availableBlocks;
-    @SuppressWarnings("FieldMayBeFinal")
     private List<BlockShufflePlayer> availablePlayers;
 
     public BlockShuffleParams(){
-        noOfRounds = 5;
-        roundTime = 6000;
-        initialFoodAmount = 16;
-        isGameRunning = false;
-        availablePlayers = new ArrayList<>();
+    	this.currentRound 		= 0;
+    	this.noOfRounds 		= 5;
+    	this.roundTime 			= 6000;
+    	this.currentRoundTime 	= 0;
+    	this.initialFoodAmount 	= 16;
+    	this.isGameRunning 		= false;
+    	this.availablePlayers 	= new ArrayList<>();
     }
-
+    
+    public int getCurrentRound() {
+    	return this.currentRound;
+    }
+    
+    public void setCurrentRound(int currentRound) {
+    	this.currentRound = currentRound;
+    }
+    
     public int getNoOfRounds() {
         return this.noOfRounds;
     }
@@ -40,6 +50,18 @@ public class BlockShuffleParams {
 
     public void setRoundTime(int roundTime){
         this.roundTime = roundTime;
+    }
+    
+    public int getCurrentRoundTime(){
+        return this.currentRoundTime;
+    }
+
+    public void setCurrentRoundTime(int currentRoundTime){
+        this.currentRoundTime = currentRoundTime;
+    }
+    
+    public void increaseCurrentRoundTime(int increment) {
+    	this.currentRoundTime += increment;
     }
 
     public int getInitialFoodAmount(){
@@ -103,6 +125,16 @@ public class BlockShuffleParams {
             return true;
         }
         else return false;
+    }
+    
+    public BlockShufflePlayer getPlayer(String playerString) {
+    	for(BlockShufflePlayer player : availablePlayers){
+            if(player.getName().equalsIgnoreCase(playerString)) {
+                return player;
+            }
+        }
+    	
+    	return null;
     }
 }
 

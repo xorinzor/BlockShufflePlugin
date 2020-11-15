@@ -6,11 +6,11 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 
-@SuppressWarnings("ALL")
 public class BlockShuffleCommands implements CommandExecutor {
     private final Main plugin;
 
@@ -21,6 +21,20 @@ public class BlockShuffleCommands implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         BlockShuffleCommandsHelper helper = new BlockShuffleCommandsHelper(this.plugin, sender);
+        
+        //Check if the sender is the console
+        if (sender instanceof ConsoleCommandSender){
+        	//Accept
+    	} 
+        //Check if the sender is an OP
+        else if (sender instanceof Player && sender.isOp()) {
+        	//Accept
+    	} 
+        else {
+    		//Fail: sender isn't console and not OP either
+    		return false;
+    	}
+        
         if(label.equalsIgnoreCase("blockshuffle")){
             if(args.length == 0) {
                 return false;
