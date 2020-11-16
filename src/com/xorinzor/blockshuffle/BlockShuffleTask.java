@@ -72,8 +72,7 @@ public class BlockShuffleTask extends BukkitRunnable {
                 int timeRemaining = this.plugin.params.getRoundTime() - this.plugin.params.getCurrentRoundTime();
 
                 //Check if everyone found their block
-                if (activePlayers == 0) {
-                    Bukkit.broadcastMessage(ChatColor.GREEN + "All remaining players found their block!");
+                if (activePlayers <= 0) {
                     this.hasRoundEnded = true;
                 } 
                 //Else check if the time is up
@@ -120,8 +119,7 @@ public class BlockShuffleTask extends BukkitRunnable {
 }
 
 class BlockShuffleTaskHelper {
-
-    Main plugin;
+    private Main plugin;
     
     public BlockShuffleTaskHelper(Main plugin){
         this.plugin = plugin;
