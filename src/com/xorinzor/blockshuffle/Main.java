@@ -58,10 +58,6 @@ public class Main extends JavaPlugin {
         	PlaceholderAPI.registerPlaceholder(this, "blockshuffle_foundBlock", new BlockShufflePlaceholderReplacer(params) {
         		@Override
         		public String onPlaceholderReplace(PlaceholderReplaceEvent event) {
-        			if(event.isOnline()) {
-        				return "offline";
-        			}
-    			
         			Player p = event.getPlayer();
     				
     				if(p == null) {
@@ -111,18 +107,26 @@ public class Main extends JavaPlugin {
         			return "" + this.params.getCurrentRound();
         		}
         	});
-        	        	
-        	PlaceholderAPI.registerPlaceholder(this, "blockshuffle_totalRoundTime", new BlockShufflePlaceholderReplacer(params) {
+        	        	        	
+        	PlaceholderAPI.registerPlaceholder(this, "blockshuffle_roundTimeRemaining", new BlockShufflePlaceholderReplacer(params) {        		
         		@Override
         		public String onPlaceholderReplace(PlaceholderReplaceEvent event) {
-        			return "" + this.params.getRoundTime();
-        		}
-        	});
-        	
-        	PlaceholderAPI.registerPlaceholder(this, "blockshuffle_currentRoundTime", new BlockShufflePlaceholderReplacer(params) {        		
-        		@Override
-        		public String onPlaceholderReplace(PlaceholderReplaceEvent event) {
-        			return "" + this.params.getCurrentRoundTime();
+        			if(this.params.getIsGameRunning() == false) {
+        				return "0:00";
+        			}
+        			
+        			int ticksLeft = this.params.getRoundTime() - this.params.getCurrentRoundTime();
+        			
+        			if(ticksLeft <= 20) {
+        				return "0:00";
+        			}
+        			
+        			int time = (int) Math.round(Math.ceil(ticksLeft / 20));
+        			
+        			int minutes = time / 60;
+        			int seconds = time % 60;
+
+        			return String.format("%02d:%02d", minutes, seconds);
         		}
         	});
         	
