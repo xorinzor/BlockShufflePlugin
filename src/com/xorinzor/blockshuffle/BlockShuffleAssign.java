@@ -1,4 +1,4 @@
-package com.sulphurouscerebrum.plugins;
+package com.xorinzor.blockshuffle;
 
 import java.util.Random;
 

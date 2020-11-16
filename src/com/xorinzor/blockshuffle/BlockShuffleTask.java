@@ -1,18 +1,18 @@
-package com.sulphurouscerebrum.plugins;
+package com.xorinzor.blockshuffle;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scoreboard.DisplaySlot;
-import org.bukkit.scoreboard.Objective;
-import org.bukkit.scoreboard.Score;
-import org.bukkit.scoreboard.Scoreboard;
+
+import com.xorinzor.blockshuffle.events.BlockShuffleGameFinishedEvent;
 
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.logging.Logger;
 
 public class BlockShuffleTask extends BukkitRunnable {
@@ -36,11 +36,10 @@ public class BlockShuffleTask extends BukkitRunnable {
     
     @Override
     public void run() {
-
         if(counter > 0) {
             if(counter % 20 == 0) {
                 for (BlockShufflePlayer player : this.plugin.params.getAvailablePlayers())
-                    titleSender.sendTitle(player.player, 5, 10, 5, ChatColor.BLUE + "Game Starting", ChatColor.RED + "" + (counter / 20));
+                    titleSender.sendTitle(player.getPlayer(), 5, 10, 5, ChatColor.BLUE + "Game Starting", ChatColor.RED + "" + (counter / 20));
             }
 
             counter -= 10;
@@ -55,29 +54,49 @@ public class BlockShuffleTask extends BukkitRunnable {
                 this.successfulPlayers = 0;
                 helper.startRound();
             } else {
+            	int activePlayers = 0;
+            	
                 for (BlockShufflePlayer player : this.plugin.params.getAvailablePlayers()) {
-                    if (!player.getHasFoundBlock()) {
-                        boolean hasFound = helper.checkPlayer(player);
-                        if (hasFound) this.successfulPlayers++;
+                	//Players who lost don't count.
+                    if (player.hasLost() == false) {
+                    	//Check if the player is standing on their block
+                    	helper.checkPlayer(player);
+                    	
+                    	//If the player hasn't found their block yet, this counts as an active player
+                    	if(!player.getHasFoundBlock()) {
+                    		activePlayers++;
+                    	}
                     }
                 }
 
                 int timeRemaining = this.plugin.params.getRoundTime() - this.plugin.params.getCurrentRoundTime();
 
                 //Check if everyone found their block
-                if (this.successfulPlayers == this.plugin.params.getAvailablePlayers().size()) {
-                    Bukkit.broadcastMessage(ChatColor.GREEN + "Everyone Found their block!");
+                if (activePlayers == 0) {
+                    Bukkit.broadcastMessage(ChatColor.GREEN + "All remaining players found their block!");
                     this.hasRoundEnded = true;
                 } 
                 //Else check if the time is up
                 else if (timeRemaining <= 0) {
-                    Bukkit.broadcastMessage("\nTime Up!");
                     this.hasRoundEnded = true;
+                    
+                    for(BlockShufflePlayer p : this.plugin.params.getAvailablePlayers()) {
+                    	if(p.getHasFoundBlock() == false) {
+                    		p.defeated();
+                    		p.getPlayer().setGameMode(GameMode.SPECTATOR);
+                    		p.getPlayer().sendMessage(ChatColor.RED + "Game over - You didn't find your block in time!");
+                    		p.getPlayer().sendMessage(ChatColor.DARK_GRAY + "You are now a spectator, when the game finishes you can play again");
+                    	}
+                    }
+                    
+                    Bukkit.broadcastMessage(ChatColor.AQUA + "" + activePlayers + " players remain!");
                 } 
                 //Else check for the remaining time (countdown)
                 else if (timeRemaining <= 200) {
-                    if(timeRemaining % 20 == 0)
-                        Bukkit.broadcastMessage(ChatColor.RED + "Time Remaining : " + ChatColor.BOLD + (timeRemaining / 20) + " seconds");
+                    if(timeRemaining % 20 == 0) {
+                    	Bukkit.broadcastMessage(ChatColor.RED + "Time Remaining : " + ChatColor.BOLD + (timeRemaining / 20) + " seconds");
+                    }
+                    
                     this.plugin.params.increaseCurrentRoundTime(10);
                 } 
                 //Finally increase the round time
@@ -86,7 +105,7 @@ public class BlockShuffleTask extends BukkitRunnable {
                 }
 
                 //Check if the game is finished
-                if (this.hasRoundEnded && this.plugin.params.getCurrentRound() == this.plugin.params.getNoOfRounds()) {
+                if (this.hasRoundEnded) {
                     this.cancel();
                 }
             }
@@ -124,11 +143,12 @@ class BlockShuffleTaskHelper {
 
     public boolean checkPlayer(BlockShufflePlayer player) {
         Material standingOn = Objects.requireNonNull(Bukkit.getPlayer(player.getName())).getLocation().getBlock().getRelative(BlockFace.DOWN).getType();
+        
         if(standingOn.equals(player.getBlockToBeFound())) {
             player.setHasFoundBlock(true);
             player.setScore(player.getScore() + 1);
             broadcastSound(Sound.BLOCK_END_PORTAL_SPAWN);
-            Bukkit.broadcastMessage(ChatColor.AQUA + player.player.getDisplayName() + " has found their block!");
+            Bukkit.broadcastMessage(ChatColor.AQUA + player.getPlayer().getDisplayName() + " has found their block!");
             return true;
         }
 
@@ -137,7 +157,7 @@ class BlockShuffleTaskHelper {
 
     public void broadcastSound(Sound sound) {
         for(BlockShufflePlayer player : this.plugin.params.getAvailablePlayers()){
-            player.player.playSound(player.player.getLocation(), sound, 1.0f, 1.0f);
+            player.getPlayer().playSound(player.getPlayer().getLocation(), sound, 1.0f, 1.0f);
         }
     }
 
@@ -148,18 +168,22 @@ class BlockShuffleTaskHelper {
         TreeMap<Integer, String> scores = new TreeMap<>(Collections.reverseOrder());
 
         for(BlockShufflePlayer player : this.plugin.params.getAvailablePlayers()) {
-            Player ply = Bukkit.getPlayer(player.getName());
+            Player p = Bukkit.getPlayer(player.getName());
             scores.put(player.getScore(), player.getName());
-            ply.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
-            titleSender.sendTitle(ply, 10, 30, 10, ChatColor.RED + "" + "Game Over", "");
+            titleSender.sendTitle(p, 10, 30, 10, ChatColor.RED + "" + "Game Over", "");
         }
 
-        Iterator iterator = scores.entrySet().iterator();
+        Bukkit.broadcastMessage(ChatColor.GOLD + "== highscore ==");
+        
+        Iterator<Entry<Integer, String>> iterator = scores.entrySet().iterator();
         while(iterator.hasNext()){
             Map.Entry mapEntry = (Map.Entry) iterator.next();
-            String message = mapEntry.getValue() + " : " + mapEntry.getKey();
-            Bukkit.broadcastMessage(message);
+            Bukkit.broadcastMessage(ChatColor.BOLD.toString() + mapEntry.getValue() + ChatColor.RESET + ": " + mapEntry.getKey());
         }
+        
         this.plugin.params.setGameRunning(false);
+        
+        BlockShuffleGameFinishedEvent event = new BlockShuffleGameFinishedEvent();
+        Bukkit.getPluginManager().callEvent(event);
     }
 }

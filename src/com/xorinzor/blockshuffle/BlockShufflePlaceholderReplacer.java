@@ -1,4 +1,4 @@
-package com.sulphurouscerebrum.plugins;
+package com.xorinzor.blockshuffle;
 
 import be.maximvdw.placeholderapi.PlaceholderReplaceEvent;
 import be.maximvdw.placeholderapi.PlaceholderReplacer;

@@ -1,4 +1,4 @@
-package com.sulphurouscerebrum.plugins;
+package com.xorinzor.blockshuffle;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -41,6 +41,10 @@ public class Main extends JavaPlugin {
     				
     				if(bp == null) {
     					return "unknown user";
+    				}
+    				
+    				if(bp.hasLost()) {
+    					return "game over";
     				}
     				
     				if(bp.getBlockToBeFound() == null) {
@@ -107,14 +111,7 @@ public class Main extends JavaPlugin {
         			return "" + this.params.getCurrentRound();
         		}
         	});
-        	
-        	PlaceholderAPI.registerPlaceholder(this, "blockshuffle_totalRounds", new BlockShufflePlaceholderReplacer(params) {
-        		@Override
-        		public String onPlaceholderReplace(PlaceholderReplaceEvent event) {
-        			return "" + this.params.getNoOfRounds();
-        		}
-        	});
-        	
+        	        	
         	PlaceholderAPI.registerPlaceholder(this, "blockshuffle_totalRoundTime", new BlockShufflePlaceholderReplacer(params) {
         		@Override
         		public String onPlaceholderReplace(PlaceholderReplaceEvent event) {
@@ -153,11 +150,9 @@ public class Main extends JavaPlugin {
                 validBlocks.add(Material.getMaterial(block));
                 Bukkit.getLogger().info("Loaded " + block);
             }
-
             else {
                 Bukkit.getLogger().info("Material " + block + " is not valid. Skipping");
             }
-
         }
 
         if(validBlocks.isEmpty())
@@ -166,22 +161,14 @@ public class Main extends JavaPlugin {
         this.params.setAvailableBlocks(validBlocks);
         Bukkit.getLogger().info("Total of " + validBlocks.size() + " blocks were added");
 
-        int rounds = getConfig().getInt("parameters.rounds");
         int roundTime = getConfig().getInt("parameters.roundTime");
-
-        if(rounds < 1) {
-            Bukkit.getLogger().info("Number of rounds cannot be less than 1. Defaulting to 1");
-            rounds = 1;
-        }
 
         if(roundTime < 200) {
             Bukkit.getLogger().info("Round time cannot be less than 10 seconds. Defaulting to 1 minute");
             roundTime = 1200;
         }
 
-        this.params.setNoOfRounds(rounds);
         this.params.setRoundTime(roundTime);
-        Bukkit.getLogger().info("Number of rounds : " + rounds);
         Bukkit.getLogger().info("Round time : " + roundTime);
 
         int foodToBeGiven = getConfig().getInt("parameters.giveFood");

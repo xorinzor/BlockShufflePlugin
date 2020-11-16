@@ -1,4 +1,4 @@
-package com.sulphurouscerebrum.plugins;
+package com.xorinzor.blockshuffle;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -10,7 +10,6 @@ import java.util.List;
 public class BlockShuffleParams {
     private BukkitTask task;
     private int currentRound;
-    private int noOfRounds;
     private int roundTime;
     private int currentRoundTime;
     private int initialFoodAmount;
@@ -20,7 +19,6 @@ public class BlockShuffleParams {
 
     public BlockShuffleParams(){
     	this.currentRound 		= 0;
-    	this.noOfRounds 		= 5;
     	this.roundTime 			= 6000;
     	this.currentRoundTime 	= 0;
     	this.initialFoodAmount 	= 16;
@@ -36,14 +34,6 @@ public class BlockShuffleParams {
     	this.currentRound = currentRound;
     }
     
-    public int getNoOfRounds() {
-        return this.noOfRounds;
-    }
-
-    public void setNoOfRounds(int noOfRounds){
-        this.noOfRounds = noOfRounds;
-    }
-
     public int getRoundTime(){
         return this.roundTime;
     }
@@ -106,6 +96,7 @@ public class BlockShuffleParams {
                 return false;
             }
         }
+        
         BlockShufflePlayer player = new BlockShufflePlayer(Bukkit.getPlayer(playerString));
         availablePlayers.add(player);
         return true;
@@ -113,6 +104,7 @@ public class BlockShuffleParams {
 
     public boolean removeAvailablePlayer(String playerString){
         int indexToBeRemoved = -1;
+        
         for(BlockShufflePlayer player : availablePlayers) {
             if(player.getName().equalsIgnoreCase(playerString)) {
                 indexToBeRemoved = availablePlayers.indexOf(player);
@@ -124,7 +116,9 @@ public class BlockShuffleParams {
             availablePlayers.remove(indexToBeRemoved);
             return true;
         }
-        else return false;
+        else {
+        	return false;
+        }
     }
     
     public BlockShufflePlayer getPlayer(String playerString) {

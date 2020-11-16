@@ -1,6 +1,7 @@
-package com.sulphurouscerebrum.plugins;
+package com.xorinzor.blockshuffle;
 
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.command.Command;
@@ -10,6 +11,8 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
+
+import com.xorinzor.blockshuffle.events.BlockShuffleGameStartedEvent;
 
 public class BlockShuffleCommands implements CommandExecutor {
     private final Main plugin;
@@ -67,12 +70,7 @@ public class BlockShuffleCommands implements CommandExecutor {
 
             else if(args[0].equalsIgnoreCase("set")) {
                 if(args.length > 1) {
-                    if(args[1].equalsIgnoreCase("noOfRounds")) {
-                        if(args.length > 2) return helper.setRounds(args[2]);
-                        else return false;
-                    }
-
-                    else if(args[1].equalsIgnoreCase("roundTime")) {
+                    if(args[1].equalsIgnoreCase("roundTime")) {
                         if(args.length > 2) return helper.setRoundTime(args[2]);
                         else return false;
                     }
@@ -112,16 +110,22 @@ class BlockShuffleCommandsHelper {
         }
 
         for(BlockShufflePlayer player : this.plugin.params.getAvailablePlayers()) {
-            player.player.setHealth(player.player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getDefaultValue());
-            player.player.setFoodLevel(20);
-            player.player.setSaturation(5);
-            player.player.getInventory().clear();
-            player.player.getInventory().addItem(new ItemStack(Material.COOKED_PORKCHOP, this.plugin.params.getInitialFoodAmount()));
+        	Player p = player.getPlayer();
+        	p.setGameMode(GameMode.SURVIVAL);
+            p.setHealth(p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getDefaultValue());
+            p.setFoodLevel(20);
+            p.setSaturation(5);
+            p.getInventory().clear();
+            p.getInventory().addItem(new ItemStack(Material.COOKED_PORKCHOP, this.plugin.params.getInitialFoodAmount()));
         }
+        
         BukkitTask task = new BlockShuffleTask(this.plugin).runTaskTimer(plugin, 0, 10);
         this.plugin.params.setTask(task);
         this.plugin.params.setGameRunning(true);
-
+        
+        BlockShuffleGameStartedEvent event = new BlockShuffleGameStartedEvent();
+        Bukkit.getPluginManager().callEvent(event);
+        
         return true;
     }
 
@@ -144,7 +148,6 @@ class BlockShuffleCommandsHelper {
     }
 
     public boolean getInfo(){
-        this.sender.sendMessage("No of Rounds : " + this.plugin.params.getNoOfRounds());
         this.sender.sendMessage("Round time : " + this.plugin.params.getRoundTime());
         this.sender.sendMessage("Initial Food Amount : " + this.plugin.params.getInitialFoodAmount());
         return true;
@@ -194,33 +197,6 @@ class BlockShuffleCommandsHelper {
         return true;
     }
 
-    public boolean setRounds(String numberOfRoundsString){
-        int noOfRounds;
-
-        try{
-            noOfRounds = Integer.parseInt(numberOfRoundsString);
-        } catch(Exception e){
-            return false;
-        }
-
-        if(noOfRounds < 1) {
-            this.sender.sendMessage("Number of rounds cannot be less than one!");
-        }
-        else if(noOfRounds > 10000) {
-            this.sender.sendMessage("Bruh. Get a life");
-        }
-        else {
-            if(this.plugin.params.getIsGameRunning()){
-                sender.sendMessage("Game is running! Cannot modify parameters during game");
-            }
-            else {
-                this.plugin.params.setNoOfRounds(noOfRounds);
-                sender.sendMessage("Set Number of rounds to : " + noOfRounds);
-            }
-        }
-        return true;
-    }
-
     public boolean setRoundTime(String roundTimeString) {
         int roundTime;
 
@@ -234,7 +210,7 @@ class BlockShuffleCommandsHelper {
             this.sender.sendMessage("Round time cannot be less than 30 seconds!");
         }
         else if(roundTime > 720000) {
-            this.sender.sendMessage("Bruh. Get a life");
+            this.sender.sendMessage("Over 1 hour per round? How about no.");
         }
         else {
             if(this.plugin.params.getIsGameRunning()){

@@ -1,5 +1,4 @@
 parameters:
-  rounds: 5
   roundTime: 6000
   giveFood: 64
 block-list:

@@ -1,4 +1,4 @@
-package com.sulphurouscerebrum.plugins;
+package com.xorinzor.blockshuffle;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -9,7 +9,6 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.List;
 
-@SuppressWarnings("NullableProblems")
 public class BlockShuffleTabCompleter implements TabCompleter {
 
     Main plugin;
@@ -68,7 +67,6 @@ public class BlockShuffleTabCompleter implements TabCompleter {
             }
 
             else if(args[0].equalsIgnoreCase(("set"))) {
-                list.add("noOfRounds");
                 list.add("roundTime");
                 list.add("foodAmount");
 

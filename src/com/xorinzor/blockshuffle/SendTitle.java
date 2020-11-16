@@ -5,7 +5,7 @@
 *
 * */
 
-package com.sulphurouscerebrum.plugins;
+package com.xorinzor.blockshuffle;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
