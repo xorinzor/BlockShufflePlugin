@@ -28,9 +28,13 @@ public class Main extends JavaPlugin {
         loadConfigFile();
         
         if(Bukkit.getPluginManager().isPluginEnabled("MVdWPlaceholderAPI")) {
-        	PlaceholderAPI.registerPlaceholder(this, "blockshuffle_blockToFind", new BlockShufflePlaceholderReplacer(params) {        		
+        	PlaceholderAPI.registerPlaceholder(this, "blockshuffle_blocktofind", new BlockShufflePlaceholderReplacer(params) {        		
         		@Override
         		public String onPlaceholderReplace(PlaceholderReplaceEvent event) {
+        			if(this.params.getIsGameRunning() == false) {
+        				return "Wait for game to start";
+        			}
+        			
     				Player p = event.getPlayer();
     				
     				if(p == null) {
@@ -55,7 +59,7 @@ public class Main extends JavaPlugin {
         		}
         	});
         	
-        	PlaceholderAPI.registerPlaceholder(this, "blockshuffle_foundBlock", new BlockShufflePlaceholderReplacer(params) {
+        	PlaceholderAPI.registerPlaceholder(this, "blockshuffle_foundblock", new BlockShufflePlaceholderReplacer(params) {
         		@Override
         		public String onPlaceholderReplace(PlaceholderReplaceEvent event) {
         			Player p = event.getPlayer();
@@ -78,37 +82,18 @@ public class Main extends JavaPlugin {
         		}
         	});
         	
-        	PlaceholderAPI.registerPlaceholder(this, "blockshuffle_score", new BlockShufflePlaceholderReplacer(params) {
+        	PlaceholderAPI.registerPlaceholder(this, "blockshuffle_currentround", new BlockShufflePlaceholderReplacer(params) {
         		@Override
         		public String onPlaceholderReplace(PlaceholderReplaceEvent event) {
-        			if(event.isOnline()) {
-        				return "offline";
+        			if(this.params.getIsGameRunning() == false) {
+        				return "Waiting";
         			}
-    			
-    				Player p = event.getPlayer();
-    				
-    				if(p == null) {
-    					return "invalid player";
-    				}
-    				
-    				BlockShufflePlayer bp = this.params.getPlayer(p.getName());
-    				
-    				if(bp == null) {
-    					return "unknown user";
-    				}
-    				
-    				return "" + bp.getScore();
-        		}
-        	});
-        	
-        	PlaceholderAPI.registerPlaceholder(this, "blockshuffle_currentRound", new BlockShufflePlaceholderReplacer(params) {
-        		@Override
-        		public String onPlaceholderReplace(PlaceholderReplaceEvent event) {
-        			return "" + this.params.getCurrentRound();
+        			
+        			return "Round " + this.params.getCurrentRound();
         		}
         	});
         	        	        	
-        	PlaceholderAPI.registerPlaceholder(this, "blockshuffle_roundTimeRemaining", new BlockShufflePlaceholderReplacer(params) {        		
+        	PlaceholderAPI.registerPlaceholder(this, "blockshuffle_timeremaining", new BlockShufflePlaceholderReplacer(params) {        		
         		@Override
         		public String onPlaceholderReplace(PlaceholderReplaceEvent event) {
         			if(this.params.getIsGameRunning() == false) {
@@ -117,7 +102,7 @@ public class Main extends JavaPlugin {
         			
         			int ticksLeft = this.params.getRoundTime() - this.params.getCurrentRoundTime();
         			
-        			if(ticksLeft <= 20) {
+        			if(ticksLeft < 20) {
         				return "0:00";
         			}
         			
@@ -140,7 +125,6 @@ public class Main extends JavaPlugin {
     }
 
     public void onDisable(){
-
     }
 
     public void loadConfigFile() {

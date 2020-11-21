@@ -5,7 +5,6 @@ import org.bukkit.entity.Player;
 
 public class BlockShufflePlayer {
     private Player player;
-    private int score;
     private Material blockToBeFound;
     private boolean hasFoundBlock;
     private boolean lost;
@@ -13,7 +12,6 @@ public class BlockShufflePlayer {
 
     public BlockShufflePlayer(Player player){
         this.player 		= player;
-        this.score 			= 0;
         this.blockToBeFound = null;
         this.hasFoundBlock 	= false;
         this.lost 			= false;
@@ -22,14 +20,6 @@ public class BlockShufflePlayer {
 
     public String getName(){
         return this.player.getName();
-    }
-
-    public int getScore(){
-        return this.score;
-    }
-
-    public void setScore(int score){
-        this.score = score;
     }
 
     public boolean getHasFoundBlock(){
@@ -66,5 +56,16 @@ public class BlockShufflePlayer {
     
     public Player getPlayer() {
     	return this.player;
+    }
+    
+    public void roundReset() {
+    	this.hasFoundBlock 	= false;
+    	this.blockToBeFound = null;
+    }
+    
+    public void fullReset() {
+    	this.lost 			= false;
+    	this.hasFoundBlock 	= false;
+    	this.roundsSurvived = 0;
     }
 }

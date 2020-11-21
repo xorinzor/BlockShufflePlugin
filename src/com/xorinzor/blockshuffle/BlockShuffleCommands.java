@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.command.BlockCommandSender;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -26,9 +27,9 @@ public class BlockShuffleCommands implements CommandExecutor {
         BlockShuffleCommandsHelper helper = new BlockShuffleCommandsHelper(this.plugin, sender);
         
         //Check if the sender is the console
-        if (sender instanceof ConsoleCommandSender){
+        if (sender instanceof ConsoleCommandSender || sender instanceof BlockCommandSender){
         	//Accept
-    	} 
+    	}
         //Check if the sender is an OP
         else if (sender instanceof Player && sender.isOp()) {
         	//Accept
@@ -104,12 +105,14 @@ class BlockShuffleCommandsHelper {
             return true;
         }
 
-        if(this.plugin.params.getAvailablePlayers().size() < 1) {
-            this.sender.sendMessage("No players added!");
+        if(this.plugin.params.getAvailablePlayers().size() < 2) {
+            this.sender.sendMessage("This game requires 2 or more players!");
             return true;
         }
 
         for(BlockShufflePlayer player : this.plugin.params.getAvailablePlayers()) {
+        	player.fullReset();
+        	
         	Player p = player.getPlayer();
         	p.setGameMode(GameMode.SURVIVAL);
             p.setHealth(p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getDefaultValue());
