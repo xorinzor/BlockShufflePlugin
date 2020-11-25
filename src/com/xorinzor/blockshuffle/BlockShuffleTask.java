@@ -73,18 +73,14 @@ public class BlockShuffleTask extends BukkitRunnable {
                 //Get the remaining time of the round
                 int timeRemaining = this.plugin.params.getRoundTime() - this.plugin.params.getCurrentRoundTime();
 
-                //Check if everyone found their block
-                if (activePlayers <= 0) {
-                    this.hasRoundEnded = true;
-                } 
-                //Else check if the time is up
-                else if (timeRemaining <= 0) {
+                //Check if everyone found their block or if the time is up
+                if (activePlayers <= 0 || timeRemaining <= 0) {
                     this.hasRoundEnded = true;
                     activePlayers = 0;
                     
                     //Send the game over message to all remaining players
                     for(BlockShufflePlayer p : this.plugin.params.getAvailablePlayers()) {
-                    	if(p.getHasFoundBlock() == false) {
+                    	if(p.getHasFoundBlock() == false && p.hasLost() == false) {
                     		p.defeated();
                     		p.roundReset();
                     		p.getPlayer().setGameMode(GameMode.SPECTATOR);
@@ -99,6 +95,8 @@ public class BlockShuffleTask extends BukkitRunnable {
                     //If only 1 player remains, the game is over.
                     if(activePlayers > 1) {
                     	Bukkit.broadcastMessage(ChatColor.AQUA + "" + activePlayers + " players remain!");
+                    } else {
+                    	this.cancel();
                     }
                 } 
                 //Else check for the remaining time (countdown)
@@ -112,11 +110,6 @@ public class BlockShuffleTask extends BukkitRunnable {
                 //Finally increase the round time
                 else {
                 	this.plugin.params.increaseCurrentRoundTime(10);
-                }
-
-                //Check if the game is finished
-                if (this.hasRoundEnded) {
-                    this.cancel();
                 }
             }
         }
