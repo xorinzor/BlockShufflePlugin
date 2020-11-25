@@ -80,7 +80,12 @@ public class BlockShuffleTask extends BukkitRunnable {
                     
                     //Send the game over message to all remaining players
                     for(BlockShufflePlayer p : this.plugin.params.getAvailablePlayers()) {
-                    	if(p.getHasFoundBlock() == false && p.hasLost() == false) {
+                    	//Skip players that are already out of the game
+                    	if(p.hasLost()) {
+                    		continue;
+                    	}
+                    	//Check if the player has found their block
+                    	else if(p.getHasFoundBlock() == false) {
                     		p.defeated();
                     		p.roundReset();
                     		p.getPlayer().setGameMode(GameMode.SPECTATOR);
